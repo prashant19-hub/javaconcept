@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Dashboard</title>
+    <style>
+        * { box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { margin: 0; background: #f4f6f9; color: #222; }
+        header {
+            background: #1e293b; color: white; padding: 18px 25px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        header h1 { margin: 0; font-size: 22px; }
+        .container { padding: 25px; }
+        .cards {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px; margin-bottom: 25px;
+        }
+        .card {
+            background: white; padding: 20px; border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer;
+            border-left: 5px solid #2563eb;
+        }
+        .card:hover { transform: translateY(-3px); }
+        .card h3 { margin: 0 0 8px; }
+        .card p { margin: 0; font-size: 26px; font-weight: bold; }
+        .section {
+            display: none; background: white; padding: 20px;
+            border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .section.active { display: block; }
+        form { display: grid; gap: 10px; max-width: 450px; }
+        input, select, button {
+            padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px;
+        }
+        button {
+            background: #2563eb; color: white; border: none; cursor: pointer;
+        }
+        button:hover { background: #1d4ed8; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+        th { background: #eef2ff; }
+        .actions button { padding: 6px 10px; font-size: 13px; }
+        .delete { background: #dc2626; }
+        .delete:hover { background: #b91c1c; }
+        .back { margin-bottom: 15px; background: #64748b; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Business Control Dashboard</h1>
+    <div>PostgreSQL + Spring Boot</div>
+</header>
+
+<div class="container">
+
+    <div class="cards">
+        <div class="card" onclick="openSection('transactions')">
+            <h3>All Transactions</h3>
+            <p id="totalCount">0</p>
+        </div>
+
+        <div class="card" onclick="openSection('add')">
+            <h3>Add Transaction</h3>
+            <p>+</p>
+        </div>
+
+        <div class="card" onclick="openSection('reports')">
+            <h3>Total Business</h3>
+            <p id="totalAmount">₹0</p>
+        </div>
+    </div>
+
+    <div id="transactions" class="section">
+        <button class="back" onclick="openSection('home')">← Back</button>
+        <h2>Transaction Data</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Product</th>
+                    <th>Amount</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="transactionTable"></tbody>
+        </table>
+    </div>
+
+    <div id="add" class="section">
+        <button class="back" onclick="openSection('home')">← Back</button>
+        <h2>Add New Transaction</h2>
+        <form onsubmit="addTransaction(event)">
+            <input id="customerName" placeholder="Customer Name" required>
+            <input id="productName" placeholder="Product Name" required>
+            <input id="amount" type="number" step="0.01" placeholder="Amount" required>
+            <select id="type" required>
+                <option value="CREDIT">Credit / Sale</option>
+                <option value="DEBIT">Debit / Expense</option>
+            </select>
+            <button type="submit">Save Transaction</button>
+        </form>
+    </div>
+
+    <div id="reports" class="section">
+        <button class="back" onclick="openSection('home')">← Back</button>
+        <h2>Business Report</h2>
+        <p>Total Credit: <b id="creditTotal">₹0</b></p>
+        <p>Total Debit: <b id="debitTotal">₹0</b></p>
+        <p>Net Business: <b id="netTotal">₹0</b></p>
+    </div>
+
+</div>
+
+<script>
+const API = "/api/transactions";
+
+async function loadData() {
+    const response = await fetch(API);
+    const data = await response.json();
+
+    document.getElementById("totalCount").innerText = data.length;
+
+    let credit = 0;
+    let debit = 0;
+
+    data.forEach(transaction => {
+        if (transaction.type === "CREDIT") {
+            credit += transaction.amount;
+        } else {
+            debit += transaction.amount;
+        }
+    });
+
+    document.getElementById("creditTotal").innerText = "₹" + credit.toFixed(2);
+    document.getElementById("debitTotal").innerText = "₹" + debit.toFixed(2);
+    document.getElementById("netTotal").innerText = "₹" + (credit - debit).toFixed(2);
+    document.getElementById("totalAmount").innerText = "₹" + credit.toFixed(2);
+
+    const tbody = document.getElementById("transactionTable");
+    tbody.innerHTML = "";
+
+    data.forEach(transaction => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${transaction.id}</td>
+                <td>${transaction.customerName}</td>
+                <td>${transaction.productName}</td>
+                <td>₹${transaction.amount}</td>
+                <td>${transaction.type}</td>
+                <td>${new Date(transaction.transactionDate).toLocaleString()}</td>
+                <td class="actions">
+                    <button class="delete" onclick="deleteTransaction(${transaction.id})">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function openSection(id) {
+    document.querySelectorAll(".section").forEach(section => {
+        section.classList.remove("active");
+    });
+
+    if (id !== "home") {
+        document.getElementById(id).classList.add("active");
+    }
+
+    if (id === "transactions" || id === "reports") {
+        loadData();
+    }
+}
+
+async function addTransaction(event) {
+    event.preventDefault();
+
+    const body = {
+        customerName: document.getElementById("customerName").value,
+        productName: document.getElementById("productName").value,
+        amount: Number(document.getElementById("amount").value),
+        type: document.getElementById("type").value
+    };
+
+    await fetch(API, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+    });
+
+    document.getElementById("customerName").value = "";
+    document.getElementById("productName").value = "";
+    document.getElementById("amount").value = "";
+
+    alert("Transaction saved successfully!");
+    openSection("transactions");
+}
+
+async function deleteTransaction(id) {
+    if (!confirm("Delete this transaction?")) {
+        return;
+    }
+
+    await fetch(`${API}/${id}`, {
+        method: "DELETE"
+    });
+
+    loadData();
+}
+
+loadData();
+</script>
+
+</body>
+</html>
