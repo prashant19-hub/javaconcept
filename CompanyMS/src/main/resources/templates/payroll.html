@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CompanyMS | Payroll</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<aside class="sidebar">
+    <a class="brand" th:href="@{/companyms/dashboard}">CompanyMS</a>
+    <nav>
+        <a th:href="@{/companyms/dashboard}">Dashboard</a>
+        <a th:href="@{/companyms/employees}">Employees</a>
+        <a th:href="@{/companyms/attendance}">Attendance</a>
+        <a class="active" th:href="@{/companyms/payroll}">Payroll</a>
+    </nav>
+</aside>
+<main class="main">
+    <header class="page-header">
+        <div>
+            <p class="eyebrow">COMPENSATION</p>
+            <h1>Payroll</h1>
+            <p class="muted">Track monthly salary records and payment status.</p>
+        </div>
+    </header>
+    <div class="alert success" th:if="${successMessage}" th:text="${successMessage}"></div>
+
+    <section class="panel form-panel">
+        <h2>Add salary record</h2>
+        <form th:action="@{/companyms/payroll/save}" th:object="${payroll}" method="post">
+            <div class="form-errors" th:if="${#fields.hasGlobalErrors()}">
+                <p th:each="error : ${#fields.globalErrors()}" th:text="${error}"></p>
+            </div>
+            <div class="form-grid">
+                <div class="field">
+                    <label for="employeeId">Employee</label>
+                    <select id="employeeId" th:field="*{employeeId}" required>
+                        <option value="">Select employee</option>
+                        <option th:each="employee : ${employees}" th:value="${employee.id}"
+                                th:text="${employee.name + ' — ' + employee.department}"></option>
+                    </select>
+                    <small class="field-error" th:errors="*{employeeId}"></small>
+                </div>
+                <div class="field">
+                    <label for="month">Month</label>
+                    <select id="month" th:field="*{month}" required>
+                        <option value="">Select month</option>
+                        <option th:each="monthName : ${months}"
+                                th:value="${monthName}" th:text="${monthName}"></option>
+                    </select>
+                    <small class="field-error" th:errors="*{month}"></small>
+                </div>
+                <div class="field">
+                    <label for="year">Year</label>
+                    <input id="year" type="number" th:field="*{year}" min="2000" required>
+                    <small class="field-error" th:errors="*{year}"></small>
+                </div>
+                <div class="field">
+                    <label for="basicSalary">Basic salary (INR)</label>
+                    <input id="basicSalary" type="number" th:field="*{basicSalary}" min="0" step="0.01" required>
+                    <small class="field-error" th:errors="*{basicSalary}"></small>
+                </div>
+                <div class="field">
+                    <label for="bonus">Bonus (INR)</label>
+                    <input id="bonus" type="number" th:field="*{bonus}" min="0" step="0.01">
+                    <small class="field-error" th:errors="*{bonus}"></small>
+                </div>
+                <div class="field">
+                    <label for="deduction">Deduction (INR)</label>
+                    <input id="deduction" type="number" th:field="*{deduction}" min="0" step="0.01">
+                    <small class="field-error" th:errors="*{deduction}"></small>
+                </div>
+                <div class="field">
+                    <label for="paymentStatus">Payment status</label>
+                    <select id="paymentStatus" th:field="*{paymentStatus}">
+                        <option value="PENDING">Pending</option>
+                        <option value="PAID">Paid</option>
+                    </select>
+                </div>
+            </div>
+            <button class="button" type="submit" th:disabled="${#lists.isEmpty(employees)}">Save salary record</button>
+            <p class="muted" th:if="${#lists.isEmpty(employees)}">Add an employee before creating payroll.</p>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>Salary records</h2>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr><th>Employee</th><th>Department</th><th>Month</th><th>Basic</th><th>Bonus</th>
+                    <th>Deduction</th><th>Net salary</th><th>Status</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="record : ${payrolls}">
+                    <td class="strong" th:text="${record.employeeName}"></td>
+                    <td th:text="${record.department}"></td>
+                    <td th:text="${record.month + ' ' + record.year}"></td>
+                    <td th:text="${'₹' + #numbers.formatDecimal(record.basicSalary, 1, 2)}"></td>
+                    <td th:text="${'₹' + #numbers.formatDecimal(record.bonus, 1, 2)}"></td>
+                    <td th:text="${'₹' + #numbers.formatDecimal(record.deduction, 1, 2)}"></td>
+                    <td class="strong" th:text="${'₹' + #numbers.formatDecimal(record.netSalary, 1, 2)}"></td>
+                    <td><span class="badge" th:classappend="${record.paymentStatus == 'PAID'} ? 'badge-active' : 'badge-pending'"
+                              th:text="${record.paymentStatus}"></span></td>
+                    <td class="actions">
+                        <form th:if="${record.paymentStatus != 'PAID'}"
+                              th:action="@{/companyms/payroll/paid/{id}(id=${record.id})}" method="post">
+                            <button class="button button-small button-secondary" type="submit">Mark paid</button>
+                        </form>
+                        <form th:action="@{/companyms/payroll/delete/{id}(id=${record.id})}" method="post"
+                              onsubmit="return confirm('Delete this payroll record?')">
+                            <button class="button button-small button-danger" type="submit">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(payrolls)}">
+                    <td colspan="9" class="empty-state">No payroll records yet.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

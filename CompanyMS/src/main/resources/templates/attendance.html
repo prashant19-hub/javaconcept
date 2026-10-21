@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CompanyMS | Attendance</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<aside class="sidebar">
+    <a class="brand" th:href="@{/companyms/dashboard}">CompanyMS</a>
+    <nav>
+        <a th:href="@{/companyms/dashboard}">Dashboard</a>
+        <a th:href="@{/companyms/employees}">Employees</a>
+        <a class="active" th:href="@{/companyms/attendance}">Attendance</a>
+        <a th:href="@{/companyms/payroll}">Payroll</a>
+    </nav>
+</aside>
+<main class="main">
+    <header class="page-header">
+        <div>
+            <p class="eyebrow">TIME &amp; ATTENDANCE</p>
+            <h1>Attendance</h1>
+            <p class="muted">Record one attendance status per employee for each date.</p>
+        </div>
+    </header>
+    <div class="alert success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <section class="panel form-panel">
+        <h2>Record attendance</h2>
+        <form th:action="@{/companyms/attendance/save}" th:object="${attendance}" method="post">
+            <div class="form-errors" th:if="${#fields.hasGlobalErrors()}">
+                <p th:each="error : ${#fields.globalErrors()}" th:text="${error}"></p>
+            </div>
+            <div class="form-grid">
+                <div class="field">
+                    <label for="employeeId">Employee</label>
+                    <select id="employeeId" th:field="*{employeeId}" required>
+                        <option value="">Select employee</option>
+                        <option th:each="employee : ${employees}" th:value="${employee.id}"
+                                th:text="${employee.name + ' — ' + employee.department}"></option>
+                    </select>
+                    <small class="field-error" th:errors="*{employeeId}"></small>
+                </div>
+                <div class="field">
+                    <label for="attendanceDate">Date</label>
+                    <input id="attendanceDate" type="date" th:field="*{attendanceDate}" required>
+                    <small class="field-error" th:errors="*{attendanceDate}"></small>
+                </div>
+                <div class="field">
+                    <label for="status">Status</label>
+                    <select id="status" th:field="*{status}">
+                        <option value="PRESENT">Present</option>
+                        <option value="ABSENT">Absent</option>
+                        <option value="LEAVE">Leave</option>
+                    </select>
+                    <small class="field-error" th:errors="*{status}"></small>
+                </div>
+            </div>
+            <button class="button" type="submit" th:disabled="${#lists.isEmpty(employees)}">Save attendance</button>
+            <p class="muted" th:if="${#lists.isEmpty(employees)}">Add an employee before recording attendance.</p>
+        </form>
+    </section>
+    <section class="panel">
+        <h2>Attendance records</h2>
+        <div class="table-scroll">
+            <table>
+                <thead><tr><th>Employee</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody>
+                <tr th:each="record : ${attendanceRecords}">
+                    <td class="strong" th:text="${record.employeeName}"></td>
+                    <td th:text="${record.attendanceDate}"></td>
+                    <td><span class="badge" th:classappend="${record.status == 'PRESENT'} ? 'badge-active' : 'badge-muted'"
+                              th:text="${record.status}"></span></td>
+                    <td>
+                        <form th:action="@{/companyms/attendance/delete/{id}(id=${record.id})}" method="post"
+                              onsubmit="return confirm('Delete this attendance record?')">
+                            <button class="button button-small button-danger" type="submit">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(attendanceRecords)}">
+                    <td colspan="4" class="empty-state">No attendance records yet.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

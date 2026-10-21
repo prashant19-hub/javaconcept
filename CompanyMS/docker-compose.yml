@@ -1,0 +1,20 @@
+services:
+  companyms-db:
+    image: postgres:16-alpine
+    container_name: companyms-db
+    environment:
+      POSTGRES_DB: companyms
+      POSTGRES_USER: companyms
+      POSTGRES_PASSWORD: companyms
+    ports:
+      - "5435:5432"
+    volumes:
+      - companyms-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U companyms -d companyms"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  companyms-postgres-data:

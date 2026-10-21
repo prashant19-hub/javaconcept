@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CompanyMS | Employees</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<aside class="sidebar">
+    <a class="brand" th:href="@{/companyms/dashboard}">CompanyMS</a>
+    <nav>
+        <a th:href="@{/companyms/dashboard}">Dashboard</a>
+        <a class="active" th:href="@{/companyms/employees}">Employees</a>
+        <a th:href="@{/companyms/attendance}">Attendance</a>
+        <a th:href="@{/companyms/payroll}">Payroll</a>
+    </nav>
+</aside>
+<main class="main">
+    <header class="page-header">
+        <div>
+            <p class="eyebrow">PEOPLE</p>
+            <h1>Employees</h1>
+            <p class="muted">Manage employee profiles and department assignments.</p>
+        </div>
+        <a class="button" th:href="@{/companyms/employees/add}">+ Add employee</a>
+    </header>
+
+    <div class="alert success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert error" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+    <section class="panel">
+        <form method="get" th:action="@{/companyms/employees}" class="search-form">
+            <input type="search" name="search" placeholder="Search name or department"
+                   th:value="${search}" aria-label="Search employees">
+            <button class="button button-secondary" type="submit">Search</button>
+            <a class="button button-quiet" th:href="@{/companyms/employees}">Clear</a>
+        </form>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr>
+                    <th>Name</th><th>Email</th><th>Department</th><th>Designation</th>
+                    <th>Joined</th><th>Experience</th><th>Salary</th><th>Status</th><th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="employee : ${employees}">
+                    <td class="strong" th:text="${employee.name}"></td>
+                    <td th:text="${employee.email}"></td>
+                    <td th:text="${employee.department}"></td>
+                    <td th:text="${employee.designation ?: '—'}"></td>
+                    <td th:text="${employee.joinDate ?: '—'}"></td>
+                    <td th:text="${employee.experienceYears == null ? '—' : employee.experienceYears + ' yrs'}"></td>
+                    <td th:text="${employee.salary == null ? '—' : '₹' + #numbers.formatDecimal(employee.salary, 1, 2)}"></td>
+                    <td><span class="badge" th:classappend="${employee.status == 'ACTIVE'} ? 'badge-active' : 'badge-muted'"
+                              th:text="${employee.status}"></span></td>
+                    <td class="actions">
+                        <a class="text-link" th:href="@{/companyms/employees/edit/{id}(id=${employee.id})}">Edit</a>
+                        <form th:action="@{/companyms/employees/transfer/{id}(id=${employee.id})}" method="post" class="inline-form">
+                            <input name="department" type="text" placeholder="New department" required aria-label="New department">
+                            <button class="button button-small button-secondary" type="submit">Transfer</button>
+                        </form>
+                        <form th:action="@{/companyms/employees/delete/{id}(id=${employee.id})}" method="post"
+                              onsubmit="return confirm('Delete this employee? Employees with history cannot be deleted.')">
+                            <button class="button button-small button-danger" type="submit">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(employees)}">
+                    <td colspan="9" class="empty-state">No employees found. Add an employee to get started.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>
