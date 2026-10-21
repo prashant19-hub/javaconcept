@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CompanyMS | Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<aside class="sidebar">
+    <a class="brand" th:href="@{/companyms/dashboard}">CompanyMS</a>
+    <nav>
+        <a class="active" th:href="@{/companyms/dashboard}">Dashboard</a>
+        <a th:href="@{/companyms/employees}">Employees</a>
+        <a th:href="@{/companyms/attendance}">Attendance</a>
+        <a th:href="@{/companyms/payroll}">Payroll</a>
+    </nav>
+</aside>
+<main class="main">
+    <header class="page-header">
+        <div>
+            <p class="eyebrow">OVERVIEW</p>
+            <h1>Company dashboard</h1>
+            <p class="muted">A live summary of your employee, attendance and payroll records.</p>
+        </div>
+        <a class="button" th:href="@{/companyms/employees/add}">+ Add employee</a>
+    </header>
+
+    <section class="cards">
+        <article class="card">
+            <span class="card-label">Total employees</span>
+            <strong th:text="${totalEmployees}">0</strong>
+            <span class="card-note">All departments</span>
+        </article>
+        <article class="card">
+            <span class="card-label">Active employees</span>
+            <strong th:text="${activeEmployees}">0</strong>
+            <span class="card-note">Currently active</span>
+        </article>
+        <article class="card">
+            <span class="card-label">Attendance records</span>
+            <strong th:text="${totalAttendance}">0</strong>
+            <span class="card-note">Recorded check-ins</span>
+        </article>
+        <article class="card">
+            <span class="card-label">Payroll records</span>
+            <strong th:text="${totalPayrolls}">0</strong>
+            <span class="card-note">Monthly salary records</span>
+        </article>
+    </section>
+
+    <section class="chart-grid">
+        <article class="panel">
+            <h2>Employees by department</h2>
+            <div class="chart-wrap"><canvas id="departmentChart"></canvas></div>
+        </article>
+        <article class="panel">
+            <h2>Payroll by month</h2>
+            <div class="chart-wrap"><canvas id="payrollChart"></canvas></div>
+        </article>
+        <article class="panel">
+            <h2>Employee status</h2>
+            <div class="chart-wrap"><canvas id="employeeStatusChart"></canvas></div>
+        </article>
+    </section>
+</main>
+<script th:inline="javascript">
+    window.companyMsDashboardData = {
+        departmentLabels: [[${departmentLabels}]],
+        employeeCounts: [[${employeeCounts}]],
+        payrollLabels: [[${payrollLabels}]],
+        payrollTotals: [[${payrollTotals}]],
+        activeEmployees: [[${activeEmployees}]],
+        inactiveEmployees: [[${inactiveEmployees}]]
+    };
+</script>
+<script th:src="@{/js/charts.js(v=2)}"></script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CompanyMS | Employee</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<aside class="sidebar">
+    <a class="brand" th:href="@{/companyms/dashboard}">CompanyMS</a>
+    <nav>
+        <a th:href="@{/companyms/dashboard}">Dashboard</a>
+        <a class="active" th:href="@{/companyms/employees}">Employees</a>
+        <a th:href="@{/companyms/attendance}">Attendance</a>
+        <a th:href="@{/companyms/payroll}">Payroll</a>
+    </nav>
+</aside>
+<main class="main">
+    <header class="page-header">
+        <div>
+            <p class="eyebrow">PEOPLE</p>
+            <h1 th:text="${employee.id == null ? 'Add employee' : 'Edit employee'}">Add employee</h1>
+            <p class="muted">Enter accurate employee details. Email addresses must be unique.</p>
+        </div>
+        <a class="button button-quiet" th:href="@{/companyms/employees}">Back to employees</a>
+    </header>
+
+    <section class="panel form-panel">
+        <form th:action="@{/companyms/employees/save}" th:object="${employee}" method="post">
+            <input type="hidden" th:field="*{id}">
+            <div class="form-grid">
+                <div class="field">
+                    <label for="name">Full name</label>
+                    <input id="name" type="text" th:field="*{name}" required maxlength="100">
+                    <small class="field-error" th:errors="*{name}"></small>
+                </div>
+                <div class="field">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" th:field="*{email}" required maxlength="150">
+                    <small class="field-error" th:errors="*{email}"></small>
+                </div>
+                <div class="field">
+                    <label for="phone">Phone</label>
+                    <input id="phone" type="tel" th:field="*{phone}" maxlength="30">
+                    <small class="field-error" th:errors="*{phone}"></small>
+                </div>
+                <div class="field">
+                    <label for="department">Department</label>
+                    <input id="department" type="text" th:field="*{department}" required maxlength="100">
+                    <small class="field-error" th:errors="*{department}"></small>
+                </div>
+                <div class="field">
+                    <label for="designation">Designation</label>
+                    <input id="designation" type="text" th:field="*{designation}" maxlength="100">
+                    <small class="field-error" th:errors="*{designation}"></small>
+                </div>
+                <div class="field">
+                    <label for="joinDate">Joining date</label>
+                    <input id="joinDate" type="date" th:field="*{joinDate}">
+                    <small class="field-error" th:errors="*{joinDate}"></small>
+                </div>
+                <div class="field">
+                    <label for="retirementDate">Retirement date</label>
+                    <input id="retirementDate" type="date" th:field="*{retirementDate}">
+                </div>
+                <div class="field">
+                    <label for="experienceYears">Experience (years)</label>
+                    <input id="experienceYears" type="number" th:field="*{experienceYears}" min="0" max="80">
+                    <small class="field-error" th:errors="*{experienceYears}"></small>
+                </div>
+                <div class="field">
+                    <label for="salary">Monthly salary (INR)</label>
+                    <input id="salary" type="number" th:field="*{salary}" min="0" step="0.01">
+                    <small class="field-error" th:errors="*{salary}"></small>
+                </div>
+                <div class="field">
+                    <label for="status">Status</label>
+                    <select id="status" th:field="*{status}">
+                        <option value="ACTIVE">Active</option>
+                        <option value="INACTIVE">Inactive</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="button" type="submit">Save employee</button>
+                <a class="button button-quiet" th:href="@{/companyms/employees}">Cancel</a>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>
